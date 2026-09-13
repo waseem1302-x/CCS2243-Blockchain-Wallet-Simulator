@@ -1,166 +1,391 @@
-# CCS2243 Blockchain Wallet Simulator
+# Blockchain Wallet Simulator
 
-An educational **single-node blockchain wallet simulator** for CCS2243 Cryptography Essential. The project is designed for a live classroom demonstration: it exposes the cryptographic evidence behind wallets, transaction signatures, Proof of Work, hash-linked blocks, password-protected private keys, and tamper detection instead of hiding those details behind a generic blockchain UI.
+A cryptography-focused educational blockchain wallet simulation system implementing secure wallets, digital signatures, transactions, Proof-of-Work mining, blockchain validation, and encrypted private-key storage.
 
-> This project uses **test coins only**. It does not connect to Bitcoin, Ethereum, an exchange, or any real-money network.
+> This project is a **single-node educational blockchain simulator**. It demonstrates blockchain and cryptography concepts for learning purposes. It is not a real cryptocurrency, production blockchain, or decentralized network.
 
-## What the system demonstrates
+---
 
-- **ECDSA over secp256k1** wallet key pairs and transaction signatures.
-- **SHA-256** transaction IDs, block hashes, Proof of Work, and avalanche behavior.
-- **SHA-256 -> RIPEMD-160 -> Base58Check-style** wallet-address derivation with checksum validation.
-- **PBKDF2-HMAC-SHA256** password-based key derivation using a random salt.
-- **AES-256-GCM** authenticated encryption for local private-key storage.
-- **Account-based balances** reconstructed from confirmed blockchain history.
-- **Mempool rules** that prevent spending pending incoming funds or overspending with multiple pending transfers.
-- **Educational faucet** transactions for initial test coins.
-- **Proof-of-Work mining** with a configurable low classroom difficulty.
-- **Mining rewards** issued as controlled system transactions.
-- **Full-chain validation** of hashes, previous-hash links, Proof of Work, signatures, address ownership, duplicate IDs, faucet policy, mining rewards, and replayed balances.
-- **Security Lab** demonstrations using an in-memory copy so tampering experiments do not destroy the saved chain.
+## Project Overview
 
-## Architecture
+Blockchain Wallet Simulator is an educational application designed to demonstrate how blockchain systems combine cryptography, transaction processing, and data integrity mechanisms.
 
-```text
-Streamlit UI
-    |
-    +--> Wallets --------> secp256k1 key pair
-    |                        |
-    |                        +--> PBKDF2-HMAC-SHA256
-    |                        +--> AES-256-GCM encrypted keystore
-    |
-    +--> Transactions ----> canonical JSON -> SHA-256 ID -> ECDSA signature
-    |                                         |
-    |                                         +--> signature verification
-    |
-    +--> Mempool ---------> balance + duplicate + signature checks
-    |
-    +--> Miner -----------> candidate block -> nonce search -> SHA-256 target
-    |
-    +--> Blockchain -----> previous-hash links -> full validation -> JSON persistence
+The system simulates:
+
+- Wallet creation and secure key management
+- Public/private key cryptography
+- Digital transaction signing
+- Transaction verification
+- Mempool processing
+- Proof-of-Work mining
+- Blockchain validation
+- Local blockchain persistence
+
+The goal is to make the internal cryptographic processes visible rather than hiding them behind a simple blockchain interface.
+
+---
+
+## Features Implemented
+
+## Wallet System
+
+- Wallet creation
+- secp256k1 public/private key generation
+- Unique blockchain address generation
+- Password-protected wallet unlocking
+- Secure encrypted private-key storage
+- Wallet persistence using JSON storage
+
+## Cryptography
+
+Implemented cryptographic techniques:
+
+### SHA-256 Hashing
+
+Used for:
+
+- Transaction ID generation
+- Block hashing
+- Blockchain integrity verification
+- Proof-of-Work mining
+
+### ECDSA Digital Signatures
+
+Using the **secp256k1 elliptic curve** for:
+
+- Transaction authentication
+- Private-key based signing
+- Signature verification
+
+### PBKDF2-HMAC-SHA256
+
+Used for:
+
+- Password-based encryption key derivation
+- Secure wallet password handling
+
+### AES-256-GCM Encryption
+
+Used for:
+
+- Private key encryption
+- Authenticated encrypted wallet storage
+
+### Address Generation
+
+Includes:
+
+- SHA-256 hashing
+- RIPEMD-160 hashing
+- Base58Check-style encoding
+- Checksum validation
+
+---
+
+## Transaction System
+
+The transaction engine provides:
+
+- Transaction creation
+- Digital signing with private keys
+- Signature verification
+- Transaction validation
+- Balance verification
+- Mempool management
+- Duplicate transaction detection
+- Overspending prevention
+
+Transaction lifecycle:
+
+```
+Create Transaction
+        |
+        v
+Sign With Private Key
+        |
+        v
+Verify Signature
+        |
+        v
+Add To Mempool
+        |
+        v
+Included In Mined Block
 ```
 
-The UI is deliberately separated from the cryptographic and blockchain domain modules so the algorithms can be tested independently.
+---
 
-## Installation
+## Blockchain System
 
-Python 3.11 or newer is recommended.
+Implemented blockchain features:
 
-### Windows PowerShell
+- Genesis block creation
+- Block structure management
+- Previous hash linking
+- SHA-256 block hashing
+- Proof-of-Work mining
+- Mining rewards
+- Blockchain integrity validation
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python -m pytest -q
-streamlit run app.py
+Mining workflow:
+
+```
+Pending Transactions
+        |
+        v
+Create Candidate Block
+        |
+        v
+Search Valid Nonce
+        |
+        v
+Verify Hash Difficulty
+        |
+        v
+Add Block To Chain
 ```
 
-### macOS / Linux
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python -m pytest -q
-streamlit run app.py
-```
-
-Streamlit will print a local URL, normally `http://localhost:8501`.
-
-## Recommended classroom demonstration
-
-1. Open **Wallets** and create `Alice`, `Bob`, and `Miner` with passwords.
-2. Open Alice's wallet and point out the public address, compressed secp256k1 public key, random salt, nonce, PBKDF2 iteration count, and encrypted private-key ciphertext.
-3. Explain that plaintext private keys are never stored in JSON.
-4. Request the educational faucet for Alice. Show that Alice still has `0` confirmed coins while the faucet transaction is only in the mempool.
-5. Open **Mempool & Mining**, select Miner, and mine the faucet transaction.
-6. Show the nonce, number of hash attempts, leading-zero Proof-of-Work target, new block hash, and previous block hash.
-7. Return to the dashboard and show Alice's confirmed balance plus the Miner's mining reward.
-8. Open **Send Transaction** and send coins from Alice to Bob. Enter Alice's password so the private key is decrypted only for signing.
-9. Show the SHA-256 transaction ID and the ECDSA signature. Point out that verification succeeds before the transaction is accepted into the mempool.
-10. Mine the transfer into the next block.
-11. Open **Blockchain Explorer** and show the genesis block, the linked hashes, the signed transfer, the mining-reward system transaction, and valid Proof of Work.
-12. Run the complete chain validation and show `VALID`.
-13. Open **Security Lab**, change a confirmed transaction amount in the in-memory copy, and show the resulting transaction/block-hash validation errors.
-14. Change a block nonce and demonstrate Proof-of-Work/hash failure.
-15. Try a wrong wallet password and show AES-GCM authenticated decryption rejection.
-16. Verify the latest transfer with a different wallet's public key and show ECDSA rejection.
-17. Change one character in the SHA-256 avalanche demo and compare the changed output bits.
-18. End by explaining that this is a cryptography-focused simulator, not a production cryptocurrency or distributed peer-to-peer network.
-
-A shorter printable sequence is available in [`docs/demo-checklist.md`](docs/demo-checklist.md).
-
-## Security model
-
-### Wallet creation
-
-1. Generate a random **secp256k1** private key.
-2. Derive its compressed public key.
-3. Hash public-key bytes with SHA-256 then RIPEMD-160.
-4. Add an address-version byte and four-byte double-SHA-256 checksum.
-5. Encode with Base58.
-6. Derive a 256-bit encryption key from the wallet password using PBKDF2-HMAC-SHA256 and a fresh random salt.
-7. Encrypt the 32-byte private key with AES-256-GCM and a fresh random 96-bit nonce.
-
-### Signed transfer
-
-The transaction's unsigned fields are serialized in canonical JSON order, hashed with SHA-256, and the resulting ID is signed using ECDSA. Verification checks all of the following before the transaction enters the mempool:
-
-- the sender public key maps to the claimed sender address;
-- the transaction hash still matches the transaction fields;
-- the ECDSA signature is valid;
-- the receiver address checksum is valid;
-- the amount is positive;
-- the sender has enough confirmed balance after existing pending outgoing transfers.
-
-### Block mining
-
-A block contains its index, timestamp, transaction list, previous block hash, miner address, difficulty, and nonce. Mining increments the nonce until:
-
-```text
-SHA256(canonical_block_data).startswith("0" * difficulty)
-```
-
-The default difficulty is intentionally low for a classroom laptop. It is **not** intended to model the economic security level of a public cryptocurrency.
+---
 
 ## Persistence
 
-Runtime state is stored locally:
+The application stores data locally using JSON files:
 
-- `data/blockchain.json` — blockchain plus mempool state.
-- `data/wallets/<address>.json` — public metadata and **encrypted** private-key ciphertext.
+- Blockchain state persistence
+- Wallet metadata persistence
+- Encrypted private-key storage
+- Atomic file writing to reduce corruption risk
 
-These runtime files are ignored by Git. JSON writes use a temporary file plus replacement to reduce partial-write corruption risk.
+Private keys are never stored as plaintext.
 
-## Automated testing
+---
 
-Run:
+# System Architecture
 
-```bash
-python -m pytest -q
+```
+User Interface (Streamlit)
+          |
+          v
+Wallet Layer
+          |
+          v
+Transaction Layer
+          |
+          v
+Cryptographic Layer
+          |
+          v
+Blockchain Engine
+          |
+          v
+Storage Layer
 ```
 
-The test suite covers hashing, secp256k1 sign/verify, wrong-key rejection, AES-GCM private-key protection, wallet persistence, transaction tampering, Proof of Work, faucet confirmation, mining rewards, overspending, duplicate transactions, chain tampering, and blockchain persistence. GitHub Actions runs the same suite on pushes and pull requests.
+### User Interface Layer
 
-## CrypTool 2 companion demonstration
+Provides interaction for wallet creation, transactions, mining, blockchain exploration, and security demonstrations.
 
-The Python/Streamlit application is the **actual integrated implementation**. CrypTool 2 can be used separately as visual evidence in the report or presentation. A useful companion workflow is:
+### Wallet Layer
 
-1. Open the CrypTool 2 **Blockchain Simulation** template.
-2. Demonstrate addresses/participants and a sample transaction.
-3. Show the signature-related components and mining/block creation.
-4. Use a SHA-256 template to visualize how a small input change produces a very different digest.
-5. Explain that the CrypTool workspace is a visual teaching aid, while this repository implements the complete wallet, key protection, transaction validation, ledger, mining, persistence, and automated tests.
+Handles key generation, address creation, password unlocking, and encrypted wallet storage.
 
-## Important limitations
+### Transaction Layer
 
-This simulator intentionally does **not** include peer-to-peer networking, independent-node consensus, smart contracts, transaction fees, dynamic difficulty adjustment, HD wallets/seed phrases, hardware-wallet integration, exchange connectivity, or production key-management guarantees. Python also cannot guarantee that decrypted key bytes are immediately erased from process memory; the implementation limits their lifetime in normal application flow but should not be described as secure memory wiping.
+Creates, signs, validates, and manages transactions.
 
-## Project documents
+### Cryptographic Layer
 
-- Design specification: `docs/superpowers/specs/2026-09-13-blockchain-wallet-simulator-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-09-13-blockchain-wallet-simulator-implementation.md`
-- Live demonstration checklist: `docs/demo-checklist.md`
+Provides hashing, encryption, digital signatures, and integrity verification.
+
+### Blockchain Engine
+
+Handles blocks, mining, validation, and chain management.
+
+### Storage Layer
+
+Maintains persistent blockchain and wallet data.
+
+---
+
+# Repository Structure
+
+```
+Blockchain-Wallet-Simulator/
+
+├── app.py
+├── requirements.txt
+├── blockchain_sim/
+│   ├── crypto_utils.py
+│   ├── wallet.py
+│   ├── transaction.py
+│   ├── block.py
+│   ├── blockchain.py
+│   ├── storage.py
+│   └── config.py
+│
+├── tests/
+│   ├── test_crypto.py
+│   ├── test_wallet.py
+│   ├── test_transaction.py
+│   ├── test_block.py
+│   ├── test_blockchain.py
+│   ├── test_storage.py
+│   └── test_app_smoke.py
+│
+└── data/
+```
+
+---
+
+# Technology Stack
+
+**Programming Language**
+
+- Python
+
+**Framework**
+
+- Streamlit
+
+**Libraries**
+
+- cryptography
+- ecdsa
+- pytest
+
+**Development Tools**
+
+- VS Code
+- Git
+- GitHub
+
+---
+
+# Installation Guide
+
+```bash
+git clone https://github.com/waseem1302-x/CCS2243-Blockchain-Wallet-Simulator.git
+
+cd CCS2243-Blockchain-Wallet-Simulator
+
+python -m venv .venv
+```
+
+Activate environment:
+
+Windows:
+
+```bash
+.\.venv\Scripts\activate
+```
+
+macOS/Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# Running The Application
+
+Start the Streamlit application:
+
+```bash
+python -m streamlit run app.py
+```
+
+The application will open in the browser at the local Streamlit address.
+
+---
+
+# Testing
+
+The project includes automated tests covering:
+
+- Cryptographic functions
+- Wallet security
+- Digital signatures
+- Transaction validation
+- Block creation
+- Blockchain integrity
+- Persistence
+- Application startup
+
+Run tests:
+
+```bash
+pytest
+```
+
+Example result:
+
+```
+28 tests passed
+```
+
+---
+
+# Security Considerations
+
+Implemented security mechanisms:
+
+- Private keys are never stored as plaintext
+- Password-based encryption protects wallet keys
+- Transactions require valid digital signatures
+- Hash verification detects modification
+- Blockchain tampering is detected through validation
+- Invalid passwords are rejected through authenticated encryption
+
+---
+
+# Limitations
+
+This project is intentionally educational and simplified.
+
+Current limitations:
+
+- Single-node blockchain simulation
+- No peer-to-peer networking
+- No distributed consensus network
+- Simplified Proof-of-Work difficulty
+- No smart contract execution
+- Not designed for real cryptocurrency usage
+
+---
+
+# Future Improvements
+
+Possible future extensions:
+
+- Multi-node blockchain simulation
+- REST API integration
+- Real network communication
+- Database-based storage
+- Advanced consensus mechanisms
+- Smart contract support
+
+---
+
+# Application Screenshots
+
+Future screenshots can be added here:
+
+- Dashboard
+- Wallet Creation
+- Transaction Processing
+- Mining Interface
+- Blockchain Explorer
+- Security Lab
+
+---
+
+## Educational Purpose
+
+This repository demonstrates practical implementation of blockchain and cryptography concepts including secure wallets, digital signatures, hashing, encryption, mining, and blockchain validation.
