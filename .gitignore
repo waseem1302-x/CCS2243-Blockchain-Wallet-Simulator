@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+.DS_Store
+
+# Runtime data: never commit encrypted wallet stores or local chain state.
+data/blockchain.json
+data/wallets/*.json
+!data/.gitkeep
+!data/wallets/.gitkeep
