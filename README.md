@@ -53,7 +53,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-pytest -q
+python -m pytest -q
 streamlit run app.py
 ```
 
@@ -64,7 +64,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-pytest -q
+python -m pytest -q
 streamlit run app.py
 ```
 
@@ -140,7 +140,7 @@ These runtime files are ignored by Git. JSON writes use a temporary file plus re
 Run:
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 The test suite covers hashing, secp256k1 sign/verify, wrong-key rejection, AES-GCM private-key protection, wallet persistence, transaction tampering, Proof of Work, faucet confirmation, mining rewards, overspending, duplicate transactions, chain tampering, and blockchain persistence. GitHub Actions runs the same suite on pushes and pull requests.
